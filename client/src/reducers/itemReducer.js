@@ -15,7 +15,7 @@ export default function(state = initialState, action) {
     case GET_ITEMS:
       return {
         ...state,
-        item: action.payload,
+        items: action.payload,
         loading: false
       };
     case ADD_ITEM:
