@@ -7,7 +7,7 @@ function auth(req, res, next) {
   //Check for token
 
   if (!token) {
-    res.status(301).json({ msg: "Access Denied!" });
+    return res.status(301).json({ msg: "Access Denied!" });
 
     try {
       //Verify token
