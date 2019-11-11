@@ -5,12 +5,13 @@ const config = require("config");
 const jwt = require("jsonwebtoken");
 
 //User model
+
 const User = require("../../models/User");
 
 //Routes
 
-//@route        POST api/user
-//@description  Register new user
+//@route        POST api/users
+//@description  Register User
 //@access       PUBLIC
 
 router.post("/", (req, res) => {
@@ -18,39 +19,46 @@ router.post("/", (req, res) => {
 
   //Simple validation
   if (!name || !email || !password) {
-    return res.status(400).json({ msg: "Please enter all fields..." });
+    return res.status(400).json({ msg: "Please enter all fields" });
   }
 
   //Check for existing user
+
   User.findOne({ email }).then(user => {
-    if (user) {
-      return res.status(400).json({ msg: "User already exists" });
-      const newUser = new User({
-        name,
-        email,
-        password
-      });
+    if (user) return res.status(400).json({ msg: "User already exists" });
 
-      //Create salt && Hash
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if (err) throw err;
-          newUser.password = hash;
-          newUser.save();
-          then(user => {
-            jwt.sign({ id: user.id });
+    const newUser = new User({
+      name,
+      email,
+      password
+    });
 
-            res.json({
-              id: user.id,
-              user: {
-                name: user.name,
-                email: user.email
-              }
-            });
-          });
+    //Create salted hash
+
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(newUser.password, salt, (err, hash) => {
+        if (err) throw err;
+        newUser.password = hash;
+        newUser.save().then(user => {
+          jwt.sign(
+            { id: user.id },
+            config.get("jwtSecret"),
+            { expiresIn: 3600 },
+            (err, token) => {
+              if (err) throw err;
+              res.json({
+                token,
+                user: {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email
+                }
+              });
+            }
+          );
         });
       });
-    }
+    });
   });
 });
 
